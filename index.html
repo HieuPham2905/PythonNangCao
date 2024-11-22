@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách hóa đơn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center text-primary mb-4">Danh sách hóa đơn</h1>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert-container">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Form nhập dữ liệu -->
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center text-success">Chèn Dữ Liệu</h4>
+                        <form action="{{ url_for('add_student') }}" method="POST">
+                            <div class="mb-3">
+                                <label for="mssv" class="form-label">MSSV</label>
+                                <input type="text" class="form-control" id="mssv" name="mssv" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hoten" class="form-label">Họ Tên</label>
+                                <input type="text" class="form-control" id="hoten" name="hoten" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hocphi" class="form-label">Học Phí</label>
+                                <input type="number" class="form-control" id="hocphi" name="hocphi">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái thanh toán</label>
+                                <div>
+                                    <input type="radio" id="paid" name="thanhtoan" value="Đã thanh toán" checked>
+                                    <label for="paid" class="form-check-label me-2">Đã thanh toán</label>
+                                    <input type="radio" id="unpaid" name="thanhtoan" value="Chưa thanh toán">
+                                    <label for="unpaid" class="form-check-label">Chưa thanh toán</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Thêm Dữ Liệu</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body">
+                        <h4 class="card-title text-center text-danger">Xóa Dữ Liệu</h4>
+                        <form action="{{ url_for('delete_student') }}" method="POST">
+                            <div class="mb-3">
+                                <label for="mssv_delete" class="form-label">Chọn MSSV để xóa</label>
+                                <input type="text" class="form-control" id="mssv_delete" name="mssv_delete" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Xóa Dữ Liệu</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng danh sách dữ liệu -->
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center text-info">Danh sách Sinh Viên</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>MSSV</th>
+                                        <th>Họ Tên</th>
+                                        <th>Học Phí</th>
+                                        <th>Mã Hóa Đơn</th>
+                                        <th>Trạng Thái Thanh Toán</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in data %}
+                                    <tr>
+                                        <td>{{ student.mssv }}</td>
+                                        <td>{{ student.hoten }}</td>
+                                        <td>{{ student.hocphi }}</td>
+                                        <td>{{ student.mahoadon }}</td>
+                                        <td>{{ student.thanhtoan }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
