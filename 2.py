@@ -2,14 +2,16 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import psycopg2
 from psycopg2 import sql
+import random
+import string
 
 class DatabaseApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Database App")
-        self.root.geometry("800x600")  # Mở rộng cửa sổ
+        self.root.title("Ứng Dụng Cơ Sở Dữ Liệu")
+        self.root.geometry("800x600")
 
-        # Database connection fields
+        # Các trường kết nối CSDL
         self.db_name = tk.StringVar(value='dbtest')
         self.user = tk.StringVar(value='postgres')
         self.password = tk.StringVar(value='051204')
@@ -17,42 +19,32 @@ class DatabaseApp:
         self.port = tk.StringVar(value='5432')
         self.table_name = tk.StringVar(value='sinhvien')
 
-        # Create the GUI elements
+        # Tạo các thành phần giao diện người dùng
         self.create_widgets()
 
     def create_widgets(self):
-        # Khung trái chứa các chức năng kết nối và thao tác
-        left_frame = tk.Frame(self.root, width=250)  # Tăng chiều rộng khung bên trái
+        left_frame = tk.Frame(self.root, width=250)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
-        # Phần kết nối cơ sở dữ liệu
         connection_frame = tk.LabelFrame(left_frame, text="Kết nối CSDL")
         connection_frame.pack(fill=tk.X, padx=5, pady=5)
 
         tk.Label(connection_frame, text="Tên CSDL:").grid(row=0, column=0, padx=5, pady=5)
         tk.Entry(connection_frame, textvariable=self.db_name).grid(row=0, column=1, padx=5, pady=5)
-
         tk.Label(connection_frame, text="Người dùng:").grid(row=1, column=0, padx=5, pady=5)
         tk.Entry(connection_frame, textvariable=self.user).grid(row=1, column=1, padx=5, pady=5)
-
         tk.Label(connection_frame, text="Mật khẩu:").grid(row=2, column=0, padx=5, pady=5)
         tk.Entry(connection_frame, textvariable=self.password, show="#").grid(row=2, column=1, padx=5, pady=5)
-
         tk.Label(connection_frame, text="Host:").grid(row=3, column=0, padx=5, pady=5)
         tk.Entry(connection_frame, textvariable=self.host).grid(row=3, column=1, padx=5, pady=5)
-
         tk.Label(connection_frame, text="Port:").grid(row=4, column=0, padx=5, pady=5)
         tk.Entry(connection_frame, textvariable=self.port).grid(row=4, column=1, padx=5, pady=5)
-
         tk.Button(connection_frame, text="Kết nối", command=self.connect_db).grid(row=5, columnspan=2, pady=10)
 
-        # Phần chọn bảng và tải dữ liệu
         query_frame = tk.LabelFrame(left_frame, text="Tải dữ liệu")
         query_frame.pack(fill=tk.X, padx=5, pady=5)
-
         tk.Label(query_frame, text="Tên bảng:").grid(row=0, column=0, padx=5, pady=5)
         tk.Entry(query_frame, textvariable=self.table_name).grid(row=0, column=1, padx=5, pady=5)
-
         tk.Button(query_frame, text="Tải dữ liệu", command=self.load_data).grid(row=1, columnspan=2, pady=10)
 
         # Phần chèn dữ liệu
@@ -61,13 +53,25 @@ class DatabaseApp:
 
         self.column1 = tk.StringVar()
         self.column2 = tk.StringVar()
+        self.hocphi = tk.StringVar()
+        self.thanhtoan = tk.StringVar(value="Chưa thanh toán")
 
-        tk.Label(insert_frame, text="MSSV:").grid(row=0, column=0, padx=5, pady=5)
-        tk.Entry(insert_frame, textvariable=self.column1).grid(row=0, column=1, padx=5, pady=5)
+        # Dòng lưu ý màu đỏ
+        tk.Label(insert_frame, text="* là bắt buộc nhập", fg="red").grid(row=0, columnspan=2, pady=5)
 
-        tk.Label(insert_frame, text="Họ tên:").grid(row=1, column=0, padx=5, pady=5)
-        tk.Entry(insert_frame, textvariable=self.column2).grid(row=1, column=1, padx=5, pady=5)
-        tk.Button(insert_frame, text="Thêm dữ liệu", command=self.insert_data).grid(row=2, columnspan=2, pady=10)
+        tk.Label(insert_frame, text="* MSSV:").grid(row=1, column=0, padx=5, pady=5)
+        tk.Entry(insert_frame, textvariable=self.column1).grid(row=1, column=1, padx=5, pady=5)
+        tk.Label(insert_frame, text="* Họ tên:").grid(row=2, column=0, padx=5, pady=5)
+        tk.Entry(insert_frame, textvariable=self.column2).grid(row=2, column=1, padx=5, pady=5)
+        tk.Label(insert_frame, text="* Học phí:").grid(row=3, column=0, padx=5, pady=5)
+        tk.Entry(insert_frame, textvariable=self.hocphi).grid(row=3, column=1, padx=5, pady=5)
+
+        # Các radio button trạng thái thanh toán
+        tk.Label(insert_frame, text="Trạng thái thanh toán:").grid(row=4, column=0, padx=5, pady=5)
+        tk.Radiobutton(insert_frame, text="Đã thanh toán", variable=self.thanhtoan, value="Đã thanh toán").grid(row=4, column=1, padx=5, pady=2)
+        tk.Radiobutton(insert_frame, text="Chưa thanh toán", variable=self.thanhtoan, value="Chưa thanh toán").grid(row=5, column=1, padx=5, pady=2)
+
+        tk.Button(insert_frame, text="Thêm dữ liệu", command=self.insert_data).grid(row=6, columnspan=2, pady=10)
 
         # Phần xóa dữ liệu
         delete_frame = tk.LabelFrame(left_frame, text="Xóa dữ liệu")
@@ -80,18 +84,22 @@ class DatabaseApp:
         self.mssv_combobox.grid(row=0, column=1, padx=5, pady=5)
         tk.Button(delete_frame, text="Xóa dữ liệu", command=self.delete_data).grid(row=1, columnspan=2, pady=10)
 
-        # Khung phải chứa bảng dữ liệu
+        # Phần hiển thị dữ liệu bên phải
         right_frame = tk.Frame(self.root)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        self.tree = ttk.Treeview(right_frame, columns=('mssv', 'hoten'), show='headings')
+        self.tree = ttk.Treeview(right_frame, columns=('mssv', 'hoten', 'hocphi', 'mahoadon', 'thanhtoan'), show='headings')
         self.tree.heading('mssv', text='MSSV')
         self.tree.heading('hoten', text='Họ Tên')
-
-        # Căn chỉnh cột giống như bảng Excel
+        self.tree.heading('hocphi', text='Học Phí')
+        self.tree.heading('mahoadon', text='Mã Hóa Đơn')
+        self.tree.heading('thanhtoan', text='Trạng Thái Thanh Toán')
         self.tree.column('mssv', width=150, anchor="center")
-        self.tree.column('hoten', width=300, anchor="w")
-        self.tree.pack(pady=10, fill='both', expand=True)  # Mở rộng Treeview theo chiều rộng và chiều cao
+        self.tree.column('hoten', width=150, anchor="w")
+        self.tree.column('hocphi', width=150, anchor="center")
+        self.tree.column('mahoadon', width=200, anchor="center")
+        self.tree.column('thanhtoan', width=150, anchor="center")
+        self.tree.pack(pady=10, fill='both', expand=True)
 
     def connect_db(self):
         try:
@@ -109,7 +117,9 @@ class DatabaseApp:
 
     def load_data(self):
         try:
-            query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(self.table_name.get()))
+            query = sql.SQL("SELECT mssv, hoten, hocphi, mahoadon, thanhtoan FROM {}").format(
+                sql.Identifier(self.table_name.get())
+            )
             self.cur.execute(query)
             rows = self.cur.fetchall()
 
@@ -117,41 +127,74 @@ class DatabaseApp:
             for i in self.tree.get_children():
                 self.tree.delete(i)
 
-            # Chèn dữ liệu mới vào Treeview
+            # Thêm dữ liệu mới vào Treeview
+            mssvs = []
             for row in rows:
-                self.tree.insert("", tk.END, values=row)
+                hocphi_formatted = "{:,.0f}".format(row[2]).replace(",", ".") + " VNĐ" if row[2] else "N/A"
+                status = "Đã thanh toán" if row[4] else "Chưa thanh toán"
+                self.tree.insert('', 'end', values=(row[0], row[1], hocphi_formatted, row[3], status))
+                mssvs.append(row[0])
 
-            # Lấy danh sách MSSV để điền vào combobox xóa
-            mssv_list = [row[0] for row in rows]  # MSSV là cột đầu tiên
-            self.mssv_combobox['values'] = mssv_list
+            # Cập nhật MSSV vào Combobox
+            self.mssv_combobox['values'] = mssvs
         except Exception as e:
+            self.conn.rollback()
             messagebox.showerror("Lỗi", f"Lỗi tải dữ liệu: {e}")
 
     def insert_data(self):
         try:
-            insert_query = sql.SQL("INSERT INTO {} (mssv, hoten) VALUES (%s, %s)").format(sql.Identifier(self.table_name.get()))
-            data_to_insert = (self.column1.get(), self.column2.get())
-            self.cur.execute(insert_query, data_to_insert)
+            mssv = self.column1.get()
+            hoten = self.column2.get()
+            hocphi = float(self.hocphi.get()) if self.hocphi.get() else None
+            thanhtoan = True if self.thanhtoan.get() == "Đã thanh toán" else False
+
+            if not mssv or not hoten:
+                raise ValueError("MSSV và Họ tên là bắt buộc!")
+
+            # Mã hóa đơn tự động với 10 ký tự từ chữ và số
+            mahoadon = ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(10)])
+
+            # Chèn dữ liệu vào cơ sở dữ liệu
+            insert_query = sql.SQL(
+                "INSERT INTO {} (mssv, hoten, hocphi, mahoadon, thanhtoan) VALUES (%s, %s, %s, %s, %s)"
+            ).format(sql.Identifier(self.table_name.get()))
+            self.cur.execute(insert_query, (mssv, hoten, hocphi, mahoadon, thanhtoan))
             self.conn.commit()
-            messagebox.showinfo("Thành công", "Dữ liệu đã được thêm!")
-            self.load_data()  # Tải lại bảng sau khi thêm
+
+            # Cập nhật Treeview
+            self.load_data()
+            messagebox.showinfo("Thành công", "Dữ liệu đã được chèn thành công!")
+        except ValueError as ve:
+            messagebox.showwarning("Cảnh báo", f"Dữ liệu không hợp lệ: {ve}")
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Lỗi thêm dữ liệu: {e}")
+            self.conn.rollback()  # Hủy giao dịch nếu có lỗi
+            messagebox.showerror("Lỗi", f"Lỗi khi thêm dữ liệu: {e}")
 
     def delete_data(self):
         try:
-            selected_mssv = self.delete_mssv.get()
-            if not selected_mssv:
-                messagebox.showerror("Lỗi", "Vui lòng chọn MSSV cần xóa.")
-                return
+            mssv = self.delete_mssv.get()
+            if not mssv:
+                raise ValueError("Vui lòng chọn MSSV để xóa!")
 
-            delete_query = sql.SQL("DELETE FROM {} WHERE mssv = %s").format(sql.Identifier(self.table_name.get()))
-            self.cur.execute(delete_query, (selected_mssv,))
+            delete_query = sql.SQL("DELETE FROM {} WHERE mssv = %s").format(
+                sql.Identifier(self.table_name.get())
+            )
+            self.cur.execute(delete_query, (mssv,))
             self.conn.commit()
-            messagebox.showinfo("Thành công", "Dữ liệu đã được xóa!")
-            self.load_data()  # Tải lại bảng sau khi xóa
+
+            # Cập nhật Treeview
+            self.load_data()
+            messagebox.showinfo("Thành công", "Dữ liệu đã được xóa thành công!")
+        except ValueError as ve:
+            messagebox.showwarning("Cảnh báo", f"{ve}")
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Lỗi xóa dữ liệu: {e}")
+            self.conn.rollback()
+            messagebox.showerror("Lỗi", f"Lỗi khi xóa dữ liệu: {e}")
+
+    def __del__(self):
+        if hasattr(self, 'conn') and self.conn:
+            self.cur.close()
+            self.conn.close()
 
 if __name__ == "__main__":
     root = tk.Tk()
